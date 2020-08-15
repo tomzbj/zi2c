@@ -4,7 +4,8 @@
 
 ## 简介
 
-只需要提供三个回调函数, 分别用于写SDA/写SCL/读SDA脚. 提供start, stop, writebyte, readbyte(带/不带nak)的五个回调函数给驱动. 大部分i2c设备有这五个操作就足够了.
+只需要提供三个回调函数, 分别用于写SDA/写SCL/读SDA脚. 提供start, stop, writebyte, readbyte(带/不带nak)的五个回调函数给驱动, 大部分i2c设备有这五个操作就足够了.
+不用再纠缠i2c操作的具体细节, 写外设驱动时轻松简洁多了.
 
 ## 使用方法
 
@@ -34,13 +35,13 @@
         return (DS1307_GPIO->IDR & DS1307_SDA);
     }
 
-之后按如下方式初始化zi2c库和外设驱动即可使用.
+之后按如下方式初始化zi2c库和外设驱动即可使用. 使用多个i2c器件时建立多个zi2c\_t实例, 并分别提供它们的回调函数即可.
 
     static zi2c_t i2c;
     i2c.setsda_f = setsda;
     i2c.setscl_f = setscl;
     i2c.getsda_f = getsda;
-    i2c.addr = 0x68;
+    i2c.addr = 0x68;    // 某些器件用外设管脚的状态来设定不同的i2c从机地址
     zi2c_init(&i2c);
     DS1307_Init(&i2c);
 
