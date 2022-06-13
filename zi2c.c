@@ -1,3 +1,4 @@
+#include "misc.h"
 #include "zi2c.h"
 
 static void start(zi2c_t* zi2c)
@@ -35,7 +36,7 @@ static void waitack(zi2c_t* zi2c)
 {
     zi2c->setsda_f(1);
     zi2c->setscl_f(1);
-    for(int n = 600; n > 0 && zi2c->getsda_f(); n--);
+    ( {  for(int n = zi2c->retry_count; n > 0 && zi2c->getsda_f(); n--);});
     zi2c->setscl_f(0);
 }
 
@@ -74,6 +75,35 @@ static void write_byte_waitack(zi2c_t* zi2c, unsigned char data)
     waitack(zi2c);
 }
 
+static void write_reg(zi2c_t* i2c, unsigned char reg, unsigned char val)
+{
+    i2c->start_f(i2c);
+    i2c->writebyte_f(i2c, (i2c->addr) << 1);
+    i2c->writebyte_f(i2c, reg);
+    i2c->writebyte_f(i2c, val);
+    i2c->stop_f(i2c);
+}
+static unsigned char read_reg(zi2c_t* i2c, unsigned char reg)
+{
+    return 0;
+}
+
+static void write_regs(zi2c_t* i2c, unsigned char reg,
+    const unsigned char* data, int count)
+{
+    i2c->start_f(i2c);
+    i2c->writebyte_f(i2c, i2c->addr << 1);
+    i2c->writebyte_f(i2c, reg);
+    for(int i = 0; i < count; i++)
+        i2c->writebyte_f(i2c, *data++);
+    i2c->stop_f(i2c);
+
+}
+static void read_regs(zi2c_t* i2c, unsigned char reg, unsigned char* data,
+    int count)
+{
+}
+
 void zi2c_init(zi2c_t* zi2c)
 {
     zi2c->start_f = start;
@@ -81,5 +111,9 @@ void zi2c_init(zi2c_t* zi2c)
     zi2c->readbyte_ack_f = read_byte_ack;
     zi2c->readbyte_nack_f = read_byte_nack;
     zi2c->writebyte_f = write_byte_waitack;
+    zi2c->write_reg_f = write_reg;
+    zi2c->write_regs_f = write_regs;
+    zi2c->read_reg_f = read_reg;
+    zi2c->read_regs_f = read_regs;
 }
 
